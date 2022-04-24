@@ -1,6 +1,13 @@
+from attr import attr
 import face_recognition
 import cv2
 import numpy as np
+from datetime import date
+import json
+from datetime import datetime
+import requests
+
+
 
 # This is a demo of running face recognition on live video from your webcam. It's a little more complicated than the
 # other example, but it includes some basic performance tweaks to make things run a lot faster:
@@ -14,30 +21,35 @@ import numpy as np
 # Get a reference to webcam #0 (the default one)
 video_capture = cv2.VideoCapture(0)
 
+
 # Load a sample picture and learn how to recognize it.
-qais_image = face_recognition.load_image_file("qais_resized.jpg")
-qais_face_encoding = face_recognition.face_encodings(qais_image)[0]
+Adam_image = face_recognition.load_image_file("Adam_resized.jpg")
+Adam_face_encoding = face_recognition.face_encodings(Adam_image)[0]
 
 # Load a second sample picture and learn how to recognize it.
-mohammad_image = face_recognition.load_image_file("mohammad.jpg")
-mohammad_face_encoding = face_recognition.face_encodings(mohammad_image)[0]
+Alma_image = face_recognition.load_image_file("Alma_resized.jpg")
+Alma_face_encoding = face_recognition.face_encodings(Alma_image)[0]
 
 # Create arrays of known face encodings and their names
-fadi_image = face_recognition.load_image_file("fadi_resized.jpg")
-fadi_face_encoding = face_recognition.face_encodings(fadi_image)[0]
+Monther_image = face_recognition.load_image_file("Monther_resized.jpg")
+Monther_face_encoding = face_recognition.face_encodings(Monther_image)[0]
 
+Yahya_image = face_recognition.load_image_file("Yahya_resized.jpg")
+Yahya_face_encoding = face_recognition.face_encodings(Yahya_image)[0]
 
 
 known_face_encodings = [
-    qais_face_encoding,
-    mohammad_face_encoding,
-    fadi_face_encoding,
+    Adam_face_encoding,
+    Alma_face_encoding,
+    Monther_face_encoding,
+    Yahya_face_encoding
    
 ]
 known_face_names = [
-    "Qais",
-    "Mohammad",
-    "fadi"
+    "Adam",
+    "Alma",
+    "Monther",
+    "Yahya"
 ]
 
 # Initialize some variables
@@ -45,7 +57,7 @@ face_locations = []
 face_encodings = []
 face_names = []
 process_this_frame = True
-
+attendances = []
 while True:
     # Grab a single frame of video
     ret, frame = video_capture.read()
@@ -78,12 +90,25 @@ while True:
             best_match_index = np.argmin(face_distances)
             if matches[best_match_index]:
                 name = known_face_names[best_match_index]
+                current_date = str(date.today())
+                current_attendance = name
+                print(current_attendance)
 
+                if current_attendance not in attendances:
+                    print("Add new student")
+                    attendances.append(current_attendance)
+                    r = requests.post('https://attendance-raspberry.herokuapp.com/', data=json.dumps({'name':current_attendance,'date':str(datetime.now())}))
+                    print(r.text)
+                    print(attendances)
+                    print("Add new Student")
+                else:
+                    print(" Student Registerd ..")
+        
             face_names.append(name)
 
     process_this_frame = not process_this_frame
 
-
+    #name="No one"
     # Display the results
     for (top, right, bottom, left), name in zip(face_locations, face_names):
         # Scale back up face locations since the frame we detected in was scaled to 1/4 size
@@ -99,10 +124,26 @@ while True:
         cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
         font = cv2.FONT_HERSHEY_DUPLEX
         cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
-
+        
     # Display the resulting image
-    cv2.imshow('Video', frame)
+    
+    #print(name)
+    #if name not in attendance_std:
+    #current_attendance = [name,str(date.today())]
 
+
+    
+    cv2.imshow('Video', frame)
+    ##cv2.imshow('Video', frame)
+    #print(attendance_std)
+   # else:
+    #    cv2.imshow('Video', frame)
+          #  print(name)
+       
+    
+        
+    
+    #print(attendance_std)
     # Hit 'q' on the keyboard to quit!
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
@@ -110,3 +151,27 @@ while True:
 # Release handle to the webcam
 video_capture.release()
 cv2.destroyAllWindows()
+
+#print(attendance_std)
+''''
+att_lst=[[]]
+std_date=["",""]
+
+for i in range(0,len(attendance_std)-1):
+
+    if attendance_std[i] == std_date[0] and std_date[1]==today:
+        continue
+
+    else:
+        
+        std_date[0]=(attendance_std[i])
+        std_date[1]=today
+        print(std_date)
+         
+        if std_date not in att_lst:
+            att_lst.append(std_date)
+            print("appended")
+            print(att_lst)
+    
+#print(attendance_std)   
+'''
